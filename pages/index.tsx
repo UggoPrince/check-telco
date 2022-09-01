@@ -4,8 +4,9 @@ import { useState } from 'react'
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
-// import Image from 'next/image'
+import Graph from './chart';
 import styles from '../styles/Home.module.css'
+import Image from 'next/image';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -21,23 +22,36 @@ const getTelcos = async (text: string) => {
 
 const checkTelco = async (phoneNumber: string) => {
   try {
-  let url = `${apiUrl}/telco`;
+  let url = `${apiUrl}/telco?history=true`;
   let data = await axios.post(url, { phoneNumber }).then(result => result.data).catch(err => {
     return err.response.data;
   });
-  console.log(data);
   return data;
   } catch (error) {
     return error;
   }
 };
 
+const telcoImages: any = {
+  MTN: 'mtn.png',
+  GLO: 'glo.jpg',
+  Airtel: 'airtel.png',
+  '9mobile': '9mobile.png',
+  NTEL: 'ntel.png',
+  SMILE: 'smile.jpg',
+};
+
+let currentImage = '';
+
 const Home: NextPage = () => {
   const [telcoOptions, setTelcoOptions] = useState([]);
   const [value, setValue] = useState("");
+  const [validNumber, setValidNumber] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [history, setHistory] = useState([]);
   const onChangeText = async (e: any) => {
     setValue('')
+    setValidNumber(false);
     const { value } = e.target;
     if (value && value.trim().length !== 0) {
       let data: any = await getTelcos(value);
@@ -45,12 +59,27 @@ const Home: NextPage = () => {
     }
   };
   const onInputValueSet = async (value: string) => {
-    setValue('')
+    setValue('');
+    setValidNumber(false);
+    setHistory([]);
     if (value !== undefined) {
       await checkTelco(value).then((result: any) => {
         const { statusCode, data, message } = result;
-        if (statusCode === 200) setValue(data.telco);
-        if (statusCode === 400) setValue(message[0]);
+        if (statusCode === 200) {
+          if (data.telco !== null) {
+            currentImage = `/telco-images/${telcoImages[data.telco]}`;
+            setValue(data.telco);
+            setValidNumber(true);
+            setHistory(data.history)
+          } else {
+            setValue('Unrecognized phone number.');
+            setValidNumber(false);
+          }
+        }
+        if (statusCode === 400) {
+          setValue(message[0]);
+          setValidNumber(false);
+        }
       });
     }
   };
@@ -69,7 +98,7 @@ const Home: NextPage = () => {
         <h4 style={{ marginTop: 40 }}>
           Tell service provider of a phone number.
         </h4>
-        <div style={{ width: 500, marginTop: 5 }}>
+        <div style={{ width: '90%', maxWidth: '500px', marginTop: 5 }}>
         <Autocomplete
           freeSolo
           filterOptions={(x) => x}
@@ -93,8 +122,13 @@ const Home: NextPage = () => {
         />
         </div>
         <h1>
-          {value}
+          {validNumber && <Image src={currentImage} alt="Vercel Logo" width={72} height={72} />}
+          {!validNumber && value}
         </h1>
+
+        <div style={{ width: '90%', maxWidth: '500px', marginTop: 5 }}>
+          {history.length > 0 && <Graph telcoHistory={history} />}
+        </div>
       </main>
     </div>
   )
