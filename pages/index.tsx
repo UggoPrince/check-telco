@@ -4,7 +4,7 @@ import { useState } from 'react'
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
-import Graph from './chart';
+import Graph from '../components/chart';
 import styles from '../styles/Home.module.css'
 import Image from 'next/image';
 
