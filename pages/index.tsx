@@ -41,14 +41,13 @@ const telcoImages: any = {
   SMILE: 'smile.jpg',
 };
 
-let currentImage = '';
-
 const Home: NextPage = () => {
   const [telcoOptions, setTelcoOptions] = useState([]);
   const [value, setValue] = useState("");
   const [validNumber, setValidNumber] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [history, setHistory] = useState([]);
+  const [currentImage, setCurrentImage] = useState('');
   const onChangeText = async (e: any) => {
     setValue('')
     setValidNumber(false);
@@ -67,7 +66,7 @@ const Home: NextPage = () => {
         const { statusCode, data, message } = result;
         if (statusCode === 200) {
           if (data.telco !== null) {
-            currentImage = `/telco-images/${telcoImages[data.telco]}`;
+            setCurrentImage(`/telco-images/${telcoImages[data.telco]}`);
             setValue(data.telco);
             setValidNumber(true);
             setHistory(data.history)
